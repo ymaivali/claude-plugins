@@ -1,0 +1,70 @@
+# Domain: Causal Contrasts — ITT analogue vs per-protocol; static vs dynamic strategies.
+
+entries:
+
+  - id: contrast_itt_analogue
+    domain: causal_contrasts
+    type: pattern
+    name: "Intention-to-treat analogue"
+    ideal: >
+      In a randomised trial the ITT effect is the effect of being ASSIGNED a strategy,
+      estimated by comparing assigned groups; it is robust because assignment was
+      random.
+    emulation: >
+      "Assignment" is only baseline initiation, and patients deviate afterwards, so the
+      ITT analogue measures the effect of a strategy nobody followed past time zero.
+      Estimated by initiators vs non-initiators, standardised or weighted on baseline
+      covariates.
+    check: "You accept that the estimate reflects baseline assignment, not sustained use."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Hernández-Díaz S, "Beyond the intention-to-treat in comparative
+          effectiveness research," Clin Trials 2012;9:48-55.
+        type: journal
+        doi: "10.1177/1740774511420743"
+        verified: true
+    tags: [contrast, itt]
+
+  - id: contrast_per_protocol
+    domain: causal_contrasts
+    type: pattern
+    name: "Per-protocol effect"
+    ideal: "The effect of ADHERING to the assigned strategy over follow-up."
+    emulation: >
+      Usually the question for a drug taken over time, but estimating it requires
+      adjusting for the post-baseline variables that drive adherence and are themselves
+      affected by earlier treatment — treatment-confounder feedback. Standard regression
+      fails: adjusting blocks the causal pathway, not adjusting leaves confounding.
+    check: "A per-protocol contrast commits to a marginal structural model / g-formula / Bayesian g-computation."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Hernández-Díaz S, "Beyond the intention-to-treat in comparative
+          effectiveness research," Clin Trials 2012;9:48-55.
+        type: journal
+        doi: "10.1177/1740774511420743"
+        verified: true
+    tags: [contrast, per-protocol, time-varying-confounding]
+
+  - id: strategy_static_dynamic
+    domain: causal_contrasts
+    type: pattern
+    name: "Static versus dynamic treatment strategies"
+    ideal: >
+      Static strategies ("always treat", "never treat") and dynamic strategies
+      ("treat when SBP exceeds a threshold") are both admissible. Dynamic,
+      treat-when-indicated rules are often the policy question of real interest.
+    emulation: >
+      Each strategy must name a concrete intervention so that consistency holds.
+      A strength of the framework is that it can target dynamic strategies at all.
+    check: "Each strategy is a well-defined rule executable at every decision point."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Robins JM, "Using Big Data to Emulate a Target Trial When a
+          Randomized Trial Is Not Available," Am J Epidemiol 2016;183:758-764.
+        type: journal
+        doi: "10.1093/aje/kwv254"
+        verified: true
+    tags: [strategies, static, dynamic, consistency]

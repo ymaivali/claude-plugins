@@ -1,0 +1,64 @@
+# Domain: Assignability — the gate before any component
+# Does the exposure name an intervention that could in principle be assigned?
+
+entries:
+
+  - id: assignability_gate
+    domain: assignability
+    type: pattern
+    name: "Well-defined intervention requirement"
+    ideal: >
+      The exposure is a strategy that could be assigned at time zero: a drug, a
+      dose, a screening interval, or a treat-when-indicated rule. The contrast is
+      between assigning it and not.
+    emulation: >
+      Same requirement. If the exposure is a state of a person rather than an
+      action on it, there is no trial to emulate and the skill stops.
+    check: >
+      Could a protocol tell someone what to DO to set the exposure? If not, the
+      potential outcome is not uniquely defined and consistency (the no-multiple-
+      versions condition) fails.
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Robins JM, "Using Big Data to Emulate a Target Trial When a
+          Randomized Trial Is Not Available," Am J Epidemiol 2016;183:758-764.
+        type: journal
+        doi: "10.1093/aje/kwv254"
+        verified: true
+    search_terms: "target trial emulation well-defined intervention consistency"
+    tags: [gate, consistency, fundamental]
+
+  - id: ill_defined_exposure
+    domain: assignability
+    type: pitfall
+    name: "Ill-defined exposure (no trial to emulate)"
+    mechanism: >
+      Exposures such as obesity, socioeconomic position, or race as a state do not
+      name a single intervention. "The effect of obesity" differs by whether weight
+      is lowered by diet, exercise, surgery, or illness, so the potential outcome
+      under "obese" is not unique. There is no clean time zero (the exposure is not
+      assigned at a moment), positivity often fails (the exposure is near-universal
+      to some degree), and consistency fails (many versions).
+    responses: >
+      (a) Reformulate until the question names an intervention — "the effect of a
+      specified weight-loss programme" — gaining precision at the cost of changing
+      the question; or (b) treat the question under triangulation across designs
+      with unrelated biases, not trial emulation.
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, "Does water kill? A call for less casual causal inferences,"
+          Ann Epidemiol 2016;26:674-680.
+        type: journal
+        doi: "10.1016/j.annepidem.2016.08.016"
+        verified: true
+      - citation: >
+          VanderWeele TJ, Robinson WR, "On the causal interpretation of race in
+          regressions adjusting for confounding and mediating variables,"
+          Epidemiology 2014;25:473-484.
+        type: journal
+        doi: "10.1097/EDE.0000000000000105"
+        verified: true
+    search_terms: "ill-defined exposure consistency assumption causal inference obesity race"
+    tags: [gate, consistency, positivity, limits]

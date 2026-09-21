@@ -1,0 +1,65 @@
+# Domain: Biases Prevented — the named biases a correctly specified target trial closes off.
+
+entries:
+
+  - id: bias_immortal_time
+    domain: biases_prevented
+    type: pitfall
+    name: "Immortal-time bias"
+    mechanism: >
+      When a patient is labelled by ever-treatment but followed from a start before the
+      first dose, the event-free waiting time until the first dose is counted as treated
+      person-time. By construction no event can occur in that stretch, so the treated
+      group accrues spurious event-free time and the drug looks protective.
+    fix: >
+      Classify each patient by the strategy ASSIGNED at time zero, not by what they go
+      on to receive; align the start of follow-up with assignment.
+    diagnostic: "Output Template C — share of treated person-time that is pre-initiation, and the events it contains (zero)."
+    confidence: established
+    references:
+      - citation: >
+          Suissa S, "Immortal time bias in pharmaco-epidemiology," Am J Epidemiol
+          2008;167:492-499.
+        type: journal
+        doi: "10.1093/aje/kwm324"
+        verified: true
+      - citation: >
+          Hernán MA, Sauer BC, Hernández-Díaz S, Platt R, Shrier I, "Specifying a
+          target trial prevents immortal time bias and other self-inflicted injuries
+          in observational analyses," J Clin Epidemiol 2016;79:70-75.
+        type: journal
+        doi: "10.1016/j.jclinepi.2016.04.014"
+        verified: true
+    search_terms: "immortal time bias pharmacoepidemiology"
+    tags: [pitfall, immortal-time, time-zero]
+
+  - id: bias_misaligned_start
+    domain: biases_prevented
+    type: pitfall
+    name: "Selection bias from a misaligned start"
+    mechanism: >
+      Defining the start of follow-up with information that postdates it (e.g. starting
+      at a date determined by a later treatment response) selects on a post-baseline
+      variable, opening a path from exposure to outcome through the selection.
+    fix: "Set time zero at an instant definable from information available then; do not let the future define the start."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Sauer BC, Hernández-Díaz S, Platt R, Shrier I, "Specifying a
+          target trial prevents immortal time bias and other self-inflicted injuries
+          in observational analyses," J Clin Epidemiol 2016;79:70-75.
+        type: journal
+        doi: "10.1016/j.jclinepi.2016.04.014"
+        verified: true
+    search_terms: "selection bias time zero misalignment target trial"
+    tags: [pitfall, selection, time-zero, collider]
+
+  - id: bias_prevalent_user_ref
+    domain: biases_prevented
+    type: pitfall
+    name: "Prevalent-user bias (cross-reference)"
+    mechanism: "See 03_study_designs.yaml :: pitfall_prevalent_user. Enrolling current users conditions on survival and tolerance."
+    fix: "New-user design."
+    confidence: established
+    references: []
+    tags: [pitfall, prevalent-user, cross-reference]

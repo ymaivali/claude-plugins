@@ -1,0 +1,65 @@
+# Domain: Time Zero — the load-bearing component
+# Aligning the three events; single vs sequential time zero; grace periods.
+
+entries:
+
+  - id: tz_alignment
+    domain: time_zero
+    type: pattern
+    name: "Alignment of eligibility, assignment, and start of follow-up"
+    ideal: >
+      In the trial the three coincide at randomisation, so no person-time is
+      classified using the future.
+    emulation: >
+      Fix one instant (e.g. the first qualifying visit) at which eligibility is
+      assessed, the strategy is assigned, and follow-up begins. Define it using only
+      information available at or before it.
+    check: >
+      For each variable used to define time zero, ask: is this knowable at time zero?
+      Any "no" reintroduces immortal-time or prevalent-user bias.
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Sauer BC, Hernández-Díaz S, Platt R, Shrier I, "Specifying a
+          target trial prevents immortal time bias and other self-inflicted injuries
+          in observational analyses," J Clin Epidemiol 2016;79:70-75.
+        type: journal
+        doi: "10.1016/j.jclinepi.2016.04.014"
+        verified: true
+    search_terms: "target trial time zero alignment immortal time eligibility"
+    tags: [time-zero, alignment, load-bearing]
+
+  - id: tz_sequential
+    domain: time_zero
+    type: pattern
+    name: "Single time zero versus a sequence of trials"
+    ideal: >
+      A patient may be eligible at several moments. One can pick a single qualifying
+      time per patient, or emulate a sequence of trials — one with time zero at each
+      eligible visit — and pool across them.
+    emulation: >
+      The sequential design uses the data more fully and is how the framework was
+      first applied to reconcile observational cohorts with randomised trials they
+      had appeared to contradict. It costs analytic complexity (a patient appears in
+      multiple trials; variance must account for it).
+    check: "If eligibility recurs, the single-vs-sequential choice is made explicitly and recorded."
+    confidence: well-supported
+    references:
+      - citation: >
+          Hernán MA, Alonso A, Logan R, Grodstein F, Michels KB, Willett WC, Manson
+          JE, Robins JM, "Observational studies analyzed like randomized experiments:
+          an application to postmenopausal hormone therapy and coronary heart
+          disease," Epidemiology 2008;19:766-779.
+        type: journal
+        doi: "10.1097/EDE.0b013e3181875e61"
+        verified: true
+      - citation: >
+          Danaei G, García Rodríguez LA, Cantero OF, Logan R, Hernán MA,
+          "Observational data for comparative effectiveness research: an emulation of
+          randomised trials of statins and primary prevention of coronary heart
+          disease," Stat Methods Med Res 2013;22:70-96.
+        type: journal
+        doi: "10.1177/0962280211403603"
+        verified: true
+    search_terms: "sequential target trial emulation nested trials cloning"
+    tags: [time-zero, sequential-trials, data-efficiency]

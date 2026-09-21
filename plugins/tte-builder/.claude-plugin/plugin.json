@@ -1,0 +1,17 @@
+{
+  "name": "tte-builder",
+  "version": "0.1.0",
+  "description": "Guides researchers through specifying a target trial and its emulation for pharmacoepidemiology and comparative-effectiveness studies, with a time-zero gate, PubMed-verified references, and explicit uncertainty tagging. Hands off the adjustment set to the dag-builder skill.",
+  "author": {
+    "name": "Ülo Maiväli"
+  },
+  "keywords": [
+    "epidemiology",
+    "pharmacoepidemiology",
+    "causal-inference",
+    "target-trial-emulation",
+    "time-zero",
+    "immortal-time-bias",
+    "per-protocol"
+  ]
+}

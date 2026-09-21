@@ -1,0 +1,148 @@
+# Domain: Protocol Components — the eight rows of the target-trial table
+# Each entry: the ideal trial specification, the emulation guidance, the check.
+
+entries:
+
+  - id: comp_eligibility
+    domain: protocol_components
+    type: component
+    name: eligibility
+    ideal: >
+      The inclusion and exclusion criteria a trial would enrol on, assessed at the
+      moment of enrolment.
+    emulation: >
+      The same criteria, decidable from data dated at or before time zero. New-user
+      restriction (untreated at the previous record) typically belongs here.
+    check: "No criterion uses a measurement, event, or treatment response recorded after time zero."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Wang W, Leaf DE, "Target Trial Emulation: A Framework for
+          Causal Inference From Observational Data," JAMA 2022;328:2446-2447.
+        type: journal
+        doi: "10.1001/jama.2022.21383"
+        verified: true
+    tags: [component, eligibility]
+
+  - id: comp_time_zero
+    domain: protocol_components
+    type: component
+    name: time_zero
+    ideal: >
+      The moment of randomisation: eligibility met, strategy assigned, follow-up
+      begun — all at one instant, so no person-time precedes assignment.
+    emulation: >
+      A defining instant (e.g. first qualifying visit), fixed using only information
+      available at or before it. See 02_time_zero.yaml.
+    check: "Eligibility, assignment, and start of follow-up coincide; instant definable from info available then."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Sauer BC, Hernández-Díaz S, Platt R, Shrier I, "Specifying a
+          target trial prevents immortal time bias and other self-inflicted injuries
+          in observational analyses," J Clin Epidemiol 2016;79:70-75.
+        type: journal
+        doi: "10.1016/j.jclinepi.2016.04.014"
+        verified: true
+    tags: [component, time-zero, load-bearing]
+
+  - id: comp_strategies
+    domain: protocol_components
+    type: component
+    name: strategies
+    ideal: >
+      The treatment strategies being compared, each a concrete rule applied over
+      follow-up (static or dynamic).
+    emulation: >
+      The same rules applied to the recorded per-visit treatment. Each must be a
+      well-defined intervention so consistency holds.
+    check: "A clinician could execute the rule at each decision point without further interpretation."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Robins JM, "Using Big Data to Emulate a Target Trial When a
+          Randomized Trial Is Not Available," Am J Epidemiol 2016;183:758-764.
+        type: journal
+        doi: "10.1093/aje/kwv254"
+        verified: true
+    tags: [component, strategies, consistency]
+
+  - id: comp_assignment
+    domain: protocol_components
+    type: component
+    name: assignment
+    ideal: "Randomise eligible patients to a strategy at time zero, ideally with blinding."
+    emulation: >
+      No randomisation. Assume the measured baseline covariates are a sufficient
+      adjustment set (conditional exchangeability) and emulate random assignment by
+      standardisation or IP weighting on them.
+    check: "The baseline imbalance by strategy is stated (confounding by indication), not hidden."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Wang W, Leaf DE, "Target Trial Emulation: A Framework for
+          Causal Inference From Observational Data," JAMA 2022;328:2446-2447.
+        type: journal
+        doi: "10.1001/jama.2022.21383"
+        verified: true
+    tags: [component, assignment, exchangeability]
+
+  - id: comp_outcome
+    domain: protocol_components
+    type: component
+    name: outcome
+    ideal: "The incident outcome counted during follow-up."
+    emulation: "The recorded outcome; the first event ends follow-up."
+    check: "Outcome ascertainment does not differ by assigned strategy in a way that opens selection bias."
+    confidence: established
+    references: []
+    tags: [component, outcome]
+
+  - id: comp_follow_up
+    domain: protocol_components
+    type: component
+    name: follow_up
+    ideal: "From time zero until the event, loss to follow-up, or the administrative end."
+    emulation: "Person-period rows from time zero; a patient leaves the risk set at the event."
+    check: "Follow-up begins AT time zero, not before — pre-assignment person-time is immortal time."
+    confidence: established
+    references:
+      - citation: >
+          Suissa S, "Immortal time bias in pharmaco-epidemiology," Am J Epidemiol
+          2008;167:492-499.
+        type: journal
+        doi: "10.1093/aje/kwm324"
+        verified: true
+    tags: [component, follow-up, immortal-time]
+
+  - id: comp_contrast
+    domain: protocol_components
+    type: component
+    name: contrast
+    ideal: "Intention-to-treat effect (of assignment) and/or per-protocol effect (of adherence)."
+    emulation: >
+      ITT analogue: initiators vs non-initiators. Per-protocol: the sustained-strategy
+      contrast, which requires adjusting for post-baseline confounders. See 04.
+    check: "The contrast is stated, and a per-protocol contrast commits to a time-varying-confounding plan."
+    confidence: established
+    references:
+      - citation: >
+          Hernán MA, Hernández-Díaz S, "Beyond the intention-to-treat in comparative
+          effectiveness research," Clin Trials 2012;9:48-55.
+        type: journal
+        doi: "10.1177/1740774511420743"
+        verified: true
+    tags: [component, contrast, itt, per-protocol]
+
+  - id: comp_analysis
+    domain: protocol_components
+    type: component
+    name: analysis
+    ideal: "ITT: compare assigned groups. Per-protocol: adjust for adherence and post-baseline confounders."
+    emulation: >
+      ITT analogue: standardise or weight on baseline covariates. Per-protocol:
+      IP-weighted marginal structural model or the g-formula; Bayesian g-computation.
+    check: "The estimator matches the chosen contrast and the adjustment set."
+    confidence: established
+    references: []
+    tags: [component, analysis]

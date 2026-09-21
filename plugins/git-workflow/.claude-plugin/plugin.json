@@ -1,0 +1,19 @@
+{
+  "name": "git-workflow",
+  "version": "0.1.0",
+  "description": "Git and GitHub for group projects in R and RStudio. Sets up a project's repository with a considered .gitignore, then runs the everyday loop: pull, commit, guarded push, branch, pull request, and merge-conflict resolution. Ships an enforced guard against force-pushes and other commands that destroy work git cannot recover.",
+  "author": {
+    "name": "Ülo Maiväli"
+  },
+  "keywords": [
+    "git",
+    "github",
+    "version-control",
+    "group-work",
+    "collaboration",
+    "r",
+    "rstudio",
+    "quarto",
+    "teaching"
+  ]
+}

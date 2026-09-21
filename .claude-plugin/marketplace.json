@@ -1,0 +1,20 @@
+{
+  "name": "ulo-plugins",
+  "owner": {
+    "name": "Ülo Maiväli"
+  },
+  "plugins": [
+    {
+      "name": "tte-builder",
+      "source": "./plugins/tte-builder",
+      "description": "Guides researchers through specifying a target trial and its emulation for pharmacoepidemiology and comparative-effectiveness studies, with a time-zero gate, PubMed-verified references, and explicit uncertainty tagging. Hands off the adjustment set to the dag-builder skill.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "git-workflow",
+      "source": "./plugins/git-workflow",
+      "description": "Git and GitHub for group projects in R and RStudio: sets up a project's repository with a considered .gitignore, then runs the everyday loop of pull, commit, guarded push, branch, pull request and conflict resolution. Ships an enforced guard against force-pushes and other commands that destroy work git cannot recover.",
+      "version": "0.1.0"
+    }
+  ]
+}

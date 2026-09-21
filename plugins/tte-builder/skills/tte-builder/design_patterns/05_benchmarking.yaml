@@ -1,0 +1,55 @@
+# Domain: Benchmarking — what emulations that recover trial results do and do not license.
+
+entries:
+
+  - id: bench_reconciliation
+    domain: benchmarking
+    type: pattern
+    name: "Reconciliation of observational cohorts with trials"
+    mechanism: >
+      When a well-specified emulation reproduces the result of a randomised trial it
+      had appeared to contradict, the discrepancy is shown to be a design artefact
+      (misaligned time zero, prevalent users) rather than a true difference. The
+      postmenopausal hormone-therapy and statin emulations are the founding cases.
+    confidence: well-supported
+    references:
+      - citation: >
+          Hernán MA, Alonso A, Logan R, Grodstein F, Michels KB, Willett WC, Manson
+          JE, Robins JM, "Observational studies analyzed like randomized experiments:
+          an application to postmenopausal hormone therapy and coronary heart
+          disease," Epidemiology 2008;19:766-779.
+        type: journal
+        doi: "10.1097/EDE.0b013e3181875e61"
+        verified: true
+    search_terms: "target trial emulation reconciliation hormone therapy women's health initiative"
+    tags: [benchmarking, reconciliation]
+
+  - id: bench_concordance
+    domain: benchmarking
+    type: pattern
+    name: "Concordance of emulations with randomised trials"
+    mechanism: >
+      Systematic programmes emulating many trials in observational databases report
+      broad agreement in direction and magnitude when the design is specified
+      carefully, supporting the framework for interventional questions.
+    caveat: >
+      The calibration supports trial emulation for well-defined interventions; it does
+      not generalise into a criterion for causal knowledge where no trial is conceivable.
+    confidence: well-supported
+    references:
+      - citation: >
+          Wang SV, Schneeweiss S, Franklin JM, et al., "Emulation of Randomized
+          Clinical Trials With Nonrandomized Database Analyses: Results of 32 Clinical
+          Trials," JAMA 2023;329:1376-1385.
+        type: journal
+        doi: "10.1001/jama.2023.4221"
+        verified: true
+      - citation: >
+          Wang C, Tang D, von Dadelszen P, Ju C, Liu L, Wang Y, Magee LA, "Concordance
+          between target trial emulation and randomised controlled trials: systematic
+          review and meta-analysis," BMJ 2026;393:e086810.
+        type: journal
+        doi: "10.1136/bmj-2025-086810"
+        verified: true
+    search_terms: "target trial emulation concordance randomized controlled trials benchmarking RCT-DUPLICATE"
+    tags: [benchmarking, concordance, calibration]

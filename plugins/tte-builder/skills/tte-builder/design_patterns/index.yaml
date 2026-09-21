@@ -1,0 +1,81 @@
+# Target Trial Emulation — Design Patterns Library — Index
+# tte-builder skill
+#
+# Each domain file contains entries of three types:
+#   component — one of the eight protocol components (ideal + emulation + check)
+#   pattern   — a named design choice (new-user, active-comparator, sequential trials)
+#   pitfall   — a named failure the protocol is built to prevent (immortal time, etc.)
+#
+# Confidence levels (for a design choice or bias claim):
+#   established | well-supported | plausible | contested | assumed | uncertain
+#
+# Proxy quality (Phase 2 emulation):
+#   direct | good-proxy | acceptable | poor-proxy | unavailable
+#
+# Reference verification:
+#   verified: true  — confirmed textbook / known DOI / PubMed result
+#   verified: false — plausible citation; must be confirmed via PubMed before use
+#
+# PROVENANCE: every reference in this library was verified via the PubMed
+# connector on 2026-06-30. Title, journal, volume, page range, and DOI were
+# confirmed against PubMed metadata. Verification log (citation key → PMID → DOI):
+#   tte-bigdata            → PMID 26994063 → 10.1093/aje/kwv254
+#   tte-jama               → PMID 36508210 → 10.1001/jama.2022.21383
+#   immortal-selfinflicted → PMID 27237061 → 10.1016/j.jclinepi.2016.04.014
+#   immortal-suissa        → PMID 18056625 → 10.1093/aje/kwm324
+#   acnu                   → PMID 26954351 → 10.1007/s40471-015-0053-5
+#   hrt-nhs                → PMID 18854702 → 10.1097/EDE.0b013e3181875e61
+#   statins                → PMID 22016461 → 10.1177/0962280211403603
+#   rct-duplicate          → PMID 37097356 → 10.1001/jama.2023.4221
+#   concordance            → PMID 42156120 → 10.1136/bmj-2025-086810
+#   water-kills            → PMID 27641316 → 10.1016/j.annepidem.2016.08.016
+#   race                   → PMID 24887159 → 10.1097/EDE.0000000000000105
+#   itt-safety             → PMID 21948059 → 10.1177/1740774511420743
+# All entries are marked verified: true on this basis.
+
+domains:
+  - id: assignability
+    file: 00_assignability.yaml
+    description: >
+      The gate before any component: does the exposure name an intervention that
+      could in principle be assigned? Well-defined interventions, consistency, and
+      the limits of the target-trial framing for ill-defined exposures.
+
+  - id: protocol_components
+    file: 01_protocol_components.yaml
+    description: >
+      The eight protocol components — eligibility, time zero, strategies,
+      assignment, outcome, follow-up, contrast, analysis — each with the ideal
+      specification, the emulation guidance, and the verification check.
+
+  - id: time_zero
+    file: 02_time_zero.yaml
+    description: >
+      The load-bearing component: aligning eligibility, assignment, and the start
+      of follow-up at one instant; single time zero versus a sequence of trials;
+      grace periods.
+
+  - id: study_designs
+    file: 03_study_designs.yaml
+    description: >
+      Canonical design choices: the new-user (incident-user) design, the
+      active-comparator design, and the prevalent-user pitfall they remove.
+
+  - id: causal_contrasts
+    file: 04_causal_contrasts.yaml
+    description: >
+      Intention-to-treat analogue versus per-protocol effect; static versus
+      dynamic treatment strategies; the consistency requirement on each.
+
+  - id: benchmarking
+    file: 05_benchmarking.yaml
+    description: >
+      The reconciliation and concordance evidence: emulations that recover the
+      result of a randomised trial, and what that calibration does and does not
+      license.
+
+  - id: biases_prevented
+    file: 06_biases_prevented.yaml
+    description: >
+      The named biases a correctly specified target trial prevents: immortal-time
+      bias, prevalent-user bias, and selection bias from a misaligned start.

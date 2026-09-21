@@ -1,0 +1,72 @@
+# Domain: Study Designs — the canonical pharmacoepi design choices.
+
+entries:
+
+  - id: design_new_user
+    domain: study_designs
+    type: pattern
+    name: "New-user (incident-user) design"
+    ideal: >
+      Enrol patients at the moment they initiate the strategy, so follow-up starts
+      with treatment as it would in a trial.
+    emulation: >
+      Restrict to patients untreated before time zero (new users). This aligns the
+      start of follow-up with initiation and removes prevalent-user bias.
+    check: "Eligibility requires no prior use of the study drug at or before time zero."
+    confidence: established
+    references:
+      - citation: >
+          Lund JL, Richardson DB, Stürmer T, "The active comparator, new user study
+          design in pharmacoepidemiology: historical foundations and contemporary
+          application," Curr Epidemiol Rep 2015;2:221-228.
+        type: journal
+        doi: "10.1007/s40471-015-0053-5"
+        verified: true
+    search_terms: "new user design incident user pharmacoepidemiology"
+    tags: [design, new-user, prevalent-user]
+
+  - id: design_active_comparator
+    domain: study_designs
+    type: pattern
+    name: "Active-comparator design"
+    ideal: >
+      Compare two treatments for the same indication rather than treatment against
+      nothing, so the comparison groups share the indication.
+    emulation: >
+      Choose an active comparator with the same indication. This narrows confounding
+      by indication and the healthy-user / healthy-adherer asymmetry of a non-user
+      comparator.
+    check: "The comparator shares the indication; the contrast is drug A vs drug B, not drug vs nothing where avoidable."
+    confidence: established
+    references:
+      - citation: >
+          Lund JL, Richardson DB, Stürmer T, "The active comparator, new user study
+          design in pharmacoepidemiology: historical foundations and contemporary
+          application," Curr Epidemiol Rep 2015;2:221-228.
+        type: journal
+        doi: "10.1007/s40471-015-0053-5"
+        verified: true
+    search_terms: "active comparator design confounding by indication"
+    tags: [design, active-comparator, confounding-by-indication]
+
+  - id: pitfall_prevalent_user
+    domain: study_designs
+    type: pitfall
+    name: "Prevalent-user bias"
+    mechanism: >
+      Enrolling patients already taking the drug conditions follow-up on having
+      survived and tolerated it. Early events and early discontinuers are missing
+      from the prevalent pool, so the survivors are a depleted, favourable subset and
+      the drug looks safer than it is.
+    fix: "New-user design (design_new_user)."
+    confidence: established
+    references:
+      - citation: >
+          Lund JL, Richardson DB, Stürmer T, "The active comparator, new user study
+          design in pharmacoepidemiology: historical foundations and contemporary
+          application," Curr Epidemiol Rep 2015;2:221-228.
+        type: journal
+        doi: "10.1007/s40471-015-0053-5"
+        verified: true
+    search_terms: "prevalent user bias depletion of susceptibles"
+    tags: [pitfall, prevalent-user, selection]
