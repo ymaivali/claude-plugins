@@ -42,11 +42,11 @@ because it is your computer:
   ones.
 - It receives the **text of the command** and nothing else. No file contents, no
   environment variables, no credentials.
-- It sends **nothing anywhere**. It is a local Python script, about 90 lines,
-  with no network access and no imports beyond the standard library. Read it:
-  `hooks/git-guard.py`.
-- Its only possible output is *"deny this command, for this reason"*. It cannot
-  modify a command or run anything.
+- It sends **nothing anywhere**. It is a local Python script — `wc -l` says 333
+  lines, of which well over a third is comment — with no network access and no
+  imports beyond the standard library. Read it: `hooks/git-guard.py`.
+- Its only possible output is *"deny this command"* or *"ask the user about this
+  command"*, each with a reason. It cannot modify a command or run anything.
 
 ### Why it exists
 
@@ -61,29 +61,80 @@ Claude Code permission rules cannot reliably block them, because those rules
 match by prefix only: a rule for `git push --force` does not match
 `git push origin main --force`. Hence a hook, which parses the command instead.
 
-### What it blocks
+### What it denies
+
+Claude cannot run these at all:
 
 `--force`, `--force-with-lease`, `--force-if-includes`, `-f`, `--delete`, `-d`
-and `--mirror` on `git push`; a `+ref` or `:ref` push refspec;
-`git reset --hard`; `git clean -f`; `git checkout --force`; `git branch -D`.
+and `--mirror` on `git push`, including the `--force-with-lease=origin/main`
+form and git's own abbreviations (`--forc`); a `+ref` or `:ref` push refspec;
+`git reset --hard`; `git clean -f`; `git checkout --force`; `git stash clear`.
 
 When it fires, you are told why. You can still run the command yourself in your
 own terminal — it restrains Claude, not you.
 
-### What it does not block
+### What it asks you about
 
-Everything else, including `git push`, `git push -u`, `git pull`,
-`git branch -d` (the safe delete, which refuses unmerged branches),
-`git reset --soft`, and `git merge --abort`.
+These throw away *your own* uncommitted work, or a local branch. Sometimes that
+is exactly what you want, so Claude is made to show you the command and wait:
 
-It also leaves ordinary shell alone. An earlier version did not: it blocked
+`git checkout -- <paths>`, `git checkout .`, `git restore` (unless it is
+`--staged` only, which just unstages), `git switch --force` /
+`--discard-changes` / `-C`, `git stash drop`, and `git branch --delete --force`
+in all its spellings (`-D`, `-Df`, `-d -f`, `--delete --force`).
+
+`git branch -D` is an ask rather than a deny for a concrete reason. GitHub's
+**Squash and merge** — which this plugin recommends — puts one new commit on
+`main` that does not have your branch's commits as ancestors, so `git branch -d`
+refuses the merged branch with *"not fully merged"*. Denying `-D` outright left
+the everyday workflow with no legal way to finish, which is how a guard gets
+switched off. The skill instead checks that the PR says `MERGED` first.
+
+### What it does not touch
+
+Everything else, including `git push`, `git push -u`, `git push --dry-run`,
+`git pull`, `git branch -d` (the safe delete), `git reset --soft`,
+`git restore --staged`, `git stash pop`, `git clean -n`, and
+`git merge --abort`.
+
+It also leaves ordinary shell alone. Two earlier versions did not. The first
+blocked
 
 ```sh
 echo "runs BEFORE pushing"; [ -f "$x" ] && git add -A
 ```
 
-because the text contained "push" and a `-f`. That is why it now parses the
-command and inspects only the arguments of an actual git subcommand.
+because the text contained "push" and a `-f`. The second still blocked
+
+```sh
+git commit -m "fix; git push -f later"
+```
+
+because it split the line on `;` before looking at quoting, so half a commit
+message became a command. It now lexes the line with `shlex`, which keeps
+quoted arguments in one piece, and inspects only the arguments of an actual git
+subcommand.
+
+### What it cannot see
+
+Being equally straightforward about the limits, because a guard oversold is
+worse than one understood:
+
+- It is **not a security boundary.** It restrains an assistant trying to be
+  helpful, not an adversary. `python -c "os.system(...)"`, a git alias, a
+  base64'd command and a dozen other spellings walk straight past it. Closing
+  those would cost false positives, and false positives are the failure that
+  actually matters here.
+- It does catch the spellings an assistant reaches for by habit: `bash -c '…'`,
+  `(…)` subshells, `/usr/bin/git`, a single `&` between commands, `eval`,
+  `--flag=value`, and git's own option abbreviations.
+- `git checkout <file>` without the `--` separator is indistinguishable from
+  `git checkout <branch>` without touching the disk, so it is not caught.
+  `git checkout -- <file>` and `git checkout .` are.
+- A heredoc or multi-line string that *contains* a destructive git command as
+  text will be flagged. Lines are treated as separate commands.
+- It sees only what the Bash tool runs. Anything you type in your own terminal
+  is yours.
 
 ### Verify it yourself, do not take my word for it
 
@@ -91,9 +142,9 @@ command and inspects only the arguments of an actual git subcommand.
 python3 ~/.claude/plugins/*/plugins/git-workflow/hooks/git-guard-test.py
 ```
 
-53 cases. The ones that matter most are the false-positive cases at the bottom
-of the file — a guard that blocks ordinary work gets switched off, and then it
-protects nothing.
+104 cases, expecting `deny`, `ask` or `allow` for each. The ones that matter
+most are the false-positive cases at the bottom of the file — a guard that
+blocks ordinary work gets switched off, and then it protects nothing.
 
 If you would rather not have it, install the skills and delete
 `hooks/hooks.json` from the installed plugin, or do not install the plugin and

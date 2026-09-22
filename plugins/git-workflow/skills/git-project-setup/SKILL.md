@@ -29,8 +29,13 @@ command -v gh >/dev/null && gh auth status >/dev/null 2>&1 && echo "MODE=gh" || 
 **Never echo the token, never put it in argv, never in a remote URL.** Use:
 
 ```bash
-git config --local credential.helper '!f() { echo "username=x-access-token"; echo "password=$GITHUBTOKEN"; }; f'
+git config --local credential.helper \
+  '!f() { echo "username=x-access-token"; echo "password=${GITHUBTOKEN:-${GH_TOKEN:-$GITHUB_TOKEN}}"; }; f'
 ```
+
+The fallback chain matters: the probe above accepts any of the three names, so
+the helper has to read all three. Reading only `$GITHUBTOKEN` fails silently — a
+push that asks for a password in a non-interactive shell and hangs.
 
 ## Step 1 — is this a sensible place for a repo?
 
@@ -127,14 +132,38 @@ gh repo create <name> --public|--private --source=. --remote=origin --push
 
 `MODE=token`:
 ```bash
-curl -sS --config - <<'EOF'
-header = "Authorization: Bearer $TOKEN_FROM_ENV"
-header = "Accept: application/vnd.github+json"
+cat > "${TMPDIR:-/tmp}/repo.json" <<'JSON'
+{"name":"<name>","private":true}
+JSON
+
+curl -sS -o "${TMPDIR:-/tmp}/repo.out" -w '%{http_code}\n' --config - <<EOF
 url = "https://api.github.com/user/repos"
-data = "{\"name\":\"<name>\",\"private\":true}"
+header = "Authorization: Bearer ${GITHUBTOKEN:-${GH_TOKEN:-$GITHUB_TOKEN}}"
+header = "Accept: application/vnd.github+json"
+data = "@${TMPDIR:-/tmp}/repo.json"
 EOF
+rm -f "${TMPDIR:-/tmp}/repo.json"
+
 git remote add origin https://github.com/<owner>/<name>.git
 git push -u origin main
+```
+
+Three things about that block are load-bearing:
+
+- **The heredoc delimiter is unquoted (`<<EOF`, not `<<'EOF'`).** That is the
+  whole mechanism. `curl --config` does no variable expansion of its own, so
+  inside a quoted heredoc `Bearer $GITHUBTOKEN` is sent to GitHub as the literal
+  eleven-character string `$GITHUBTOKEN` and you get a 401 that looks like a bad
+  token. Unquoted, the shell substitutes the value on its way to curl's *stdin* —
+  still never in argv, never in `ps`.
+- **The JSON body goes through a file** (`data = "@..."`). An unquoted heredoc
+  also eats the backslashes in `{\"name\":...}`, which corrupts the body.
+- **Read the status code.** Expect `201`. `422` usually means the name is taken.
+
+Then confirm the remote is real before trusting the push:
+
+```bash
+git ls-remote origin >/dev/null 2>&1 && echo reachable || echo "NOT reachable"
 ```
 
 **Always an HTTPS remote.** SSH remotes fail outright in some environments

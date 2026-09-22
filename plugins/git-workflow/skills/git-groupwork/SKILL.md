@@ -43,12 +43,22 @@ setting, not a user error — fix it, mention it once, move on.
 ## Step 1 — branch by default when there are collaborators
 
 ```bash
-gh api "repos/{owner}/{repo}/collaborators" --jq 'length' 2>/dev/null || echo 1
+gh api "repos/{owner}/{repo}/collaborators" --jq 'length' 2>/dev/null \
+  || git log --format='%ae' -n 200 | sort -u | wc -l
 ```
 
-**More than one collaborator, and the user is starting new work: branch first
-and say so.** Do not remind and hope. Branching costs nothing up front and is
-confusing to retrofit after two days of commits on `main`.
+The `gh` call needs push access — it returns 403 for a read-only collaborator —
+and it is unavailable without `gh` at all. So it falls back to counting distinct
+commit authors, which is local and always answers.
+
+**Anything but a confident `1` means branch.** More than one collaborator, or no
+usable answer, and the user is starting new work: branch first and say so. Do
+not remind and hope. Branching costs nothing up front and is confusing to
+retrofit after two days of commits on `main`.
+
+A failed probe must never read as *solo*. An earlier version of this skill ended
+the line with `|| echo 1`, which sent work straight to `main` at exactly the
+moment the check was broken.
 
 ```bash
 git switch -c feature/<what-it-does>
@@ -86,6 +96,15 @@ echo "$FILES" | while read -r f; do [ -f "$f" ] && \
 echo "$FILES" | grep -Ei '(^|/)(\.env|\.Renviron)$|secret|token|credential|\.pem$|\.p12$|id_rsa' || true
 ```
 
+Pushing to `main` turns on whether the repository is public, so find out rather
+than assume:
+
+```bash
+gh repo view --json isPrivate --jq '.isPrivate' 2>/dev/null || echo unknown
+```
+
+`unknown` counts as public — ask.
+
 **Push without asking** when all of these hold:
 - nothing flagged above, and
 - the branch is not `main`/`master`, **or** the repository is private.
@@ -103,13 +122,23 @@ deletes teammates' commits from the remote. If the user asks for it, explain
 what it destroys and have them run it themselves.
 
 This one is enforced, not merely instructed: a `PreToolUse` hook
-(`git-guard.py`) parses the command and inspects the arguments of the git
+(`git-guard.py`) lexes the command and inspects the arguments of the git
 subcommand, so `git push origin main --force` is caught as surely as
-`git push --force`. Some installations add prefix deny rules in
-`settings.json` as well.
-The same guard covers `--force-with-lease`, `--delete`, `-d`, a `+refspec`,
-a `:refspec`, `reset --hard` and `clean -f`. If you hit it, relay the reason
-to the user; do not look for a spelling that gets around it.
+`git push --force`, and so is `--force-with-lease=origin/main`.
+
+The guard has two verdicts:
+
+- **Deny** — you cannot run it at all: force and delete pushes, `--mirror`, a
+  `+refspec` or `:refspec`, `reset --hard`, `clean -f`, `stash clear`.
+- **Ask** — the user is shown the command and answers: `checkout -- <paths>`,
+  `checkout .`, `restore`, `switch --force`, `stash drop`,
+  `branch --delete --force`. These discard the user's *own* uncommitted work or
+  a local branch, which is occasionally exactly what is wanted. Before they
+  answer, name the files or commits that would be lost.
+
+Relay the reason either way. **Do not look for a spelling that gets around a
+deny.** There are spellings that work — the guard is a rail, not a wall — and
+using one defeats the thing the user chose to install.
 
 A rejected push (`! [rejected] … (fetch first)`) means a teammate pushed and
 this push would overwrite them. Pull, resolve, push. Say that in those words.
@@ -163,7 +192,8 @@ user can merge their own.
 
 Recommend **Squash and merge** over GitHub's default "Create a merge commit":
 one commit on `main` per contribution, readable history, and reverting a bad
-contribution becomes a single step.
+contribution becomes a single step. It has one consequence for the cleanup in
+Step 6 — read that before deleting the branch.
 
 ## Step 6 — the step everyone forgets
 
@@ -171,13 +201,28 @@ contribution becomes a single step.
 everyone in the group:
 
 ```bash
+gh pr view <N> --json state --jq '.state'        # expect MERGED
 git switch main && git pull && git fetch --prune
 git branch -d <the-merged-branch>
 ```
 
-Skip this and the user will, a week later, commit new work onto a branch that
-was merged and deleted, and be thoroughly confused. Do it unprompted whenever a
-PR is seen to have merged.
+**Check the PR state first, then delete.** The order matters, because of this:
+
+> `error: The branch 'feature/x' is not fully merged.`
+
+After a **squash** merge that message is expected and does not mean the work is
+unsaved. Squashing writes one new commit on `main` that does not have the
+branch's commits as ancestors, so git honestly cannot see a merge, and `-d`
+refuses. The PR saying `MERGED` is the evidence git lacks; with it,
+`git branch -D <branch>` is the correct command, and the guard will ask before
+it runs — that `MERGED` is the answer to give.
+
+Without a `MERGED` from the PR, the message means exactly what it says. Do not
+reach for `-D` to make it go away.
+
+Skip this whole step and the user will, a week later, commit new work onto a
+branch that was merged and deleted, and be thoroughly confused. Do it unprompted
+whenever a PR is seen to have merged.
 
 ## Step 7 — merge conflicts: advise, never decide
 
@@ -223,6 +268,7 @@ The second check is how `<<<<<<< HEAD` fails to reach a submitted report.
 | `CONFLICT (content)` | same lines both sides | Step 7 |
 | `Please tell me who you are` | no commit identity | set `user.name`/`user.email` repo-locally; ask, don't guess |
 | PR says `CONFLICTING`/`DIRTY` | `main` moved while the PR was open | `git merge origin/main` *in the branch* |
+| `branch 'x' is not fully merged` | usually a squash merge; git sees no ancestry | confirm the PR is `MERGED`, then `-D`. Step 6 |
 | push hangs, or file >100 MB refused | something huge got committed | if unpushed, undo the commit and gitignore it. If pushed: tell them, and treat any secret as burned |
 
 ## Never
@@ -231,5 +277,10 @@ The second check is how `<<<<<<< HEAD` fails to reach a submitted report.
 - Merge a PR the user authored, in a repo with collaborators.
 - Resolve a conflict by picking a side without telling the user what each side said.
 - Push a file over ~1 MB, or a credential-shaped file, without asking.
-- Discard uncommitted work without first naming exactly which files would be lost.
+- Discard uncommitted work — `checkout -- .`, `restore`, `switch -f`,
+  `stash drop` — without first naming exactly which files would be lost.
+- Delete a branch with `-D` on the strength of the error message alone. The PR
+  must say `MERGED`.
+- Route around the guard once it has denied something: no `bash -c`, no
+  `/usr/bin/git`, no subshell, no alias. Relay the reason instead.
 - Echo a token, or put one in argv or a remote URL.

@@ -1,5 +1,5 @@
 {
-  "description": "Blocks git commands that destroy work git cannot recover: force-pushes, remote branch deletion, hard resets, forced cleans and forced checkouts. Parses the command and inspects only the git subcommand's arguments, so ordinary shell containing -f or the word push is unaffected.",
+  "description": "Holds back git commands that destroy work git cannot recover: force-pushes, remote branch deletion, hard resets, forced cleans, and the commands that throw away uncommitted changes. Lexes the command and inspects only the arguments of an actual git subcommand, so ordinary shell containing -f or the word push is unaffected, and a ';' inside a commit message is not a command separator.",
   "hooks": {
     "PreToolUse": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.py",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.py\"",
             "timeout": 10
           }
         ]

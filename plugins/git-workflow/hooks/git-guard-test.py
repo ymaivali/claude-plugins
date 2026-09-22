@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Test suite for git-guard.py. Run after any edit to the guard:
 
-    python3 ~/.claude/hooks/git-guard-test.py
+    python3 ~/.claude/plugins/*/plugins/git-workflow/hooks/git-guard-test.py
 
-Each case is (expected, command) where expected is "deny" or "allow".
+Each case is (expected, command) where expected is "deny", "ask" or "allow".
 The false-positive cases matter more than the deny cases: a guard that
 blocks ordinary shell gets switched off, which is worse than no guard.
 """
@@ -31,15 +31,60 @@ CASES = [
     ("deny", "git push --delete origin feature/x"),
     ("deny", "git push -d origin feature/x"),
     ("deny", "git push --mirror origin"),
-    # --- other destructive git ---
+    ("deny", "git status && git push --force"),
+    # --force-with-lease=<ref>: the exact-string check missed this, and it is
+    # the spelling an assistant reaches for most readily
+    ("deny", "git push --force-with-lease=origin/main"),
+    ("deny", "git push --force-with-lease=main:abc123 origin main"),
+    ("deny", "git push origin main --force-if-includes=x"),
+    # git accepts unambiguous long-option abbreviations
+    ("deny", "git push --forc origin main"),
+    ("deny", "git push --mirr origin"),
+    # a command line inside another command line
+    ("deny", "bash -c 'git push --force'"),
+    ('deny', 'sh -c "git push -f origin main"'),
+    ("deny", "zsh -lc 'git push --force'"),
+    ("deny", "eval 'git push --force'"),
+    # subshells, absolute paths, a single & between commands
+    ("deny", "(git push -f)"),
+    ("deny", "/usr/bin/git push -f origin main"),
+    ("deny", "git status & git push -f"),
+    ("deny", "{ git push --force; }"),
+    ("deny", "git push -f 2>/dev/null"),
+
+    # --- other destructive git: denied ---
     ("deny", "git reset --hard HEAD~1"),
     ("deny", "git reset --hard"),
+    ("deny", "git reset --hard origin/main"),
     ("deny", "git clean -fd"),
     ("deny", "git clean -df"),
+    ("deny", "git clean -ffdx"),
     ("deny", "git clean --force"),
     ("deny", "git checkout --force main"),
-    ("deny", "git branch -D feature/unmerged"),
-    ("deny", "git status && git push --force"),
+    ("deny", "git checkout -f main"),
+    ("deny", "git stash clear"),
+
+    # --- destroys the user's own uncommitted work: ask, do not deny ---
+    ("ask", "git checkout -- ."),
+    ("ask", "git checkout ."),
+    ("ask", "git checkout -- R/01-load.R"),
+    ("ask", "git checkout HEAD -- R/01-load.R"),
+    ("ask", "git restore ."),
+    ("ask", "git restore R/01-load.R"),
+    ("ask", "git restore --worktree --staged ."),
+    ("ask", "git switch -f main"),
+    ("ask", "git switch --discard-changes main"),
+    ("ask", "git switch -C main origin/main"),
+    ("ask", "git stash drop"),
+    ("ask", "git stash drop stash@{2}"),
+
+    # --- forced branch delete: ask. Squash-merged branches need it, and
+    # --- git branch -d refuses them ("not fully merged") ---
+    ("ask", "git branch -D feature/unmerged"),
+    ("ask", "git branch --delete --force feature/x"),
+    ("ask", "git branch -d -f feature/x"),
+    ("ask", "git branch -Df feature/x"),
+    ("ask", "git branch -f -d feature/x"),
 
     # --- must be allowed: ordinary git ---
     ("allow", "git push"),
@@ -47,6 +92,7 @@ CASES = [
     ("allow", "git push -u origin feature/describe-by-sex"),
     ("allow", "git push --dry-run"),
     ("allow", "git push --set-upstream origin feature/x"),
+    ("allow", "git push origin HEAD:main"),
     ("allow", "git pull"),
     ("allow", "git fetch --prune"),
     ("allow", "git status --short --branch"),
@@ -54,14 +100,24 @@ CASES = [
     ("allow", "git commit -m 'fix: broken thing'"),
     ("allow", "git commit -am 'note: see docs/readme'"),
     ("allow", "git switch -c feature/new-thing"),
+    ("allow", "git switch main"),
     ("allow", "git branch -d feature/merged"),
+    ("allow", "git branch --delete feature/merged"),
     ("allow", "git branch -vv"),
     ("allow", "git checkout main"),
+    ("allow", "git checkout -b feature/x"),
     ("allow", "git reset HEAD~1"),            # soft reset: keeps the work
     ("allow", "git reset --soft HEAD~1"),
+    ("allow", "git restore --staged R/01-load.R"),   # unstages only
     ("allow", "git diff --name-only"),
     ("allow", "git merge origin/main"),
     ("allow", "git merge --abort"),
+    ("allow", "git stash"),
+    ("allow", "git stash pop"),
+    ("allow", "git stash list"),
+    ("allow", "git clean -n"),
+    ("allow", "git clean --dry-run"),
+    ("allow", "bash -c 'git status --short'"),
 
     # --- false-positive traps: the first implementation failed ALL of these ---
     # the word "push" in prose plus a -f shell test operator
@@ -79,6 +135,14 @@ CASES = [
     ("allow", "git commit -m 'document why we never force-push'"),
     # colon inside a message, not a refspec
     ("allow", "git push origin main:main"),   # explicit same-name refspec, not a delete
+    # --- the regex-split version tore quoted arguments apart on ; and | ---
+    ("allow", 'git commit -m "fix; git push -f later"'),
+    ("allow", 'git commit -m "ready; git push --force is banned here"'),
+    ("allow", "git commit -m 'either | or; never --force'"),
+    # --- separate lines are separate commands, and must not pool arguments ---
+    ("allow", "git push origin main\ngrep -f patterns.txt data.csv"),
+    ("allow", "git status\ngit add -A\ngit commit -m done"),
+    ("deny", "git status\ngit push --force"),
 ]
 
 
@@ -100,7 +164,7 @@ def main():
 
     print(f"{len(CASES)} cases: {len(CASES) - len(failures)} passed, {len(failures)} failed")
     for expected, got, command in failures:
-        print(f"  MISMATCH expected={expected} got={got}  {command}")
+        print(f"  MISMATCH expected={expected} got={got}  {command!r}")
     return 1 if failures else 0
 
 

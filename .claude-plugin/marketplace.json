@@ -14,7 +14,7 @@
       "name": "git-workflow",
       "source": "./plugins/git-workflow",
       "description": "Git and GitHub for group projects in R and RStudio: sets up a project's repository with a considered .gitignore, then runs the everyday loop of pull, commit, guarded push, branch, pull request and conflict resolution. Ships an enforced guard against force-pushes and other commands that destroy work git cannot recover.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }
